@@ -1,6 +1,6 @@
 const {Router} = require('express');
 const {hashPass} =require('../middleware/hashPassword');
-const UserController = require('../controller/user.controller')
+const UserController = require('../controllers/user.controller')
 const userRouter = Router();
 
 userRouter.post('/sign-up' ,hashPass, UserController.signUpUser); // signUp

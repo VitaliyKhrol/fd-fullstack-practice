@@ -1,0 +1,8 @@
+POST http://localhost:5005/api/chats/63d6ae37816eb33d39a0b29e HTTP/1.1
+Content-Type: application/json
+
+{
+    "author": "63d2c5c28daf2683f7290dbc",
+    "body": "Hello, world",
+    "status": false
+}
