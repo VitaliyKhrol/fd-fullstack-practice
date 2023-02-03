@@ -26,9 +26,9 @@ module.exports.addUserToChat = async (req, res, next) => {
 
 module.exports.addNewMessage = async (req, res, next) => {
     try {
-        const {body, params: {chatId}} = req;
+        const {body, params: {chatId}, payload: {userId}} = req;
         const chatInstance = await Chat.findById(chatId);
-        const newMessage = await Message.create({...body, chatId});
+        const newMessage = await Message.create({...body, chatId, author: userId});
         chatInstance.messages.push(newMessage);
         chatInstance.save();
         res.status(201).send({data: newMessage});
@@ -40,10 +40,10 @@ module.exports.addNewMessage = async (req, res, next) => {
 
 module.exports.getAllUserChats = async (req, res, next) => {
     try {
-        const {params: {userId}} = req;
-        const usersChat = await Chat.find({
-            members: userId
-        });
+        const {payload: {userId}} = req;
+          const usersChat = await Chat.find({
+              members: userId
+      });
         res.status(200).send({data: usersChat })
     } catch(error) {
         next(error)
@@ -52,9 +52,10 @@ module.exports.getAllUserChats = async (req, res, next) => {
 
 module.exports.getChatWithMessages = async (req, res, next) => {
     try {
-        const {params: {chatId}} = req;
-        const chatWithMessages = await Chat.findById(chatId).populate('messages');
-        res.status(200).send(chatWithMessages);
+         const {params: {chatId}} = req;
+         console.log(chatId);
+         const chatWithMessages = await Chat.findById(chatId).populate('messages');
+         res.status(200).send(chatWithMessages);
     } catch(error) {
         next(error)
     }

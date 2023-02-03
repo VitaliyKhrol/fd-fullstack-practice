@@ -1,7 +1,9 @@
 const bcrypt = require('bcrypt');
-const {User} = require('../models');
+const {User, RefreshToken} = require('../models');
+const TokenError = require('../errors/TokenError');
 const NotFoundError = require('../errors/NotFound');
 const InvalidDataError = require('../errors/InvalidDataError');
+const {createAccessToken, createRefreshToken, verifyRefreshToken} = require('../services/tokenService');
 
 module.exports.signUpUser = async (req, res, next) => {
     try {
@@ -12,6 +14,18 @@ module.exports.signUpUser = async (req, res, next) => {
         next(error);
     }
 }
+
+
+/*
+{
+    email: 'mail@mks.a',
+    password: 'password'
+}
+1. Знайти юзера за таким мейлом.
+    Якщо такого мейла ні в кого немає - відповісти помилкою.
+2. Порівняти хеш паролів.
+3. Якщо все співпадає - відправити користувачу його дані.
+*/
 
 module.exports.signInUser = async (req, res, next) => {
     try {
@@ -24,7 +38,18 @@ module.exports.signInUser = async (req, res, next) => {
             // Або пароль правильний, або ні.
             console.log(result); 
             if (result) {
-                res.status(200).send({data: foundUser});
+                /// Створити токен для юзера і відправити його у відповідь
+                const accessToken = await createAccessToken({userId: foundUser._id, email: foundUser.email});
+                const refreshToken = await createRefreshToken({userId: foundUser._id, email: foundUser.email})
+                
+                const addedToken = await RefreshToken.create({
+                    token: refreshToken,
+                    userId: foundUser._id
+                });
+                // TODO: check if RT successfully created
+                // TODO: check how much tokens user already use
+                
+                res.status(200).send({data: foundUser, tokens: {accessToken, refreshToken}});
             } else {
                throw new InvalidDataError('Invalid credentials')
             }
@@ -38,4 +63,60 @@ module.exports.signInUser = async (req, res, next) => {
 
 module.exports.getOneUser = async (req, res, next) => {
 
+}
+
+
+/*
+1. Приходить запит на рефреш (оновлення).
+ - RT валідний, ми можемо оновити сесію, згенерувати і видати користувачу свіжу пару токенів.
+    При цьому маємо ВИДАЛИТИ з БД старий RT і зберегти новий.
+ - RT невалідний, ми не можемо оновити сесію. Ми маємо змусити користувача перелогінитись
+*/
+
+
+module.exports.refreshSession = async (req, res, next) => {
+    const {body, body: {refreshToken}} = req;
+    let verifyPayload;
+        try {
+            verifyPayload = await verifyRefreshToken(refreshToken); /// throw errors
+        } catch (error) {
+            next(new TokenError('Invalid refresh token'));
+        }
+
+
+    try {
+        if(verifyPayload) {
+            const foundUser = await User.findOne({
+                email: verifyPayload.email
+            });
+            console.log(foundUser);
+            const rtFromDB = await RefreshToken.findOne({ $and: [{
+                token: refreshToken,
+            }, {
+                userId: foundUser._id
+            }]}); /// RefreshToken not found
+
+            if(rtFromDB) {
+                const removeRes = await rtFromDB.deleteOne(); // TODO: check if RT succefully deleted
+                /// Робимо нову пару токенів 
+                const newAccessToken = await createAccessToken({userId: foundUser._id, email: foundUser.email});
+                const newRefreshToken = await createRefreshToken({userId: foundUser._id, email: foundUser.email});
+                const added = await RefreshToken.create({
+                    token: newRefreshToken,
+                    userId: foundUser._id
+                });
+
+                res.status(200).send({
+                    tokens: {
+                        accessToken: newAccessToken,
+                        refreshToken: newRefreshToken
+                    }
+                })
+            } else {
+                throw new TokenError('Token not found');
+            }
+    }
+ } catch(error) {
+    next(error);
+ }
 }
