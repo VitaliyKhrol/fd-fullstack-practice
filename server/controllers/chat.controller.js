@@ -43,7 +43,7 @@ module.exports.getAllUserChats = async (req, res, next) => {
         const {payload: {userId}} = req;
           const usersChat = await Chat.find({
               members: userId
-      });
+    }, 'name members');
         res.status(200).send({data: usersChat })
     } catch(error) {
         next(error)
@@ -55,7 +55,7 @@ module.exports.getChatWithMessages = async (req, res, next) => {
          const {params: {chatId}} = req;
          console.log(chatId);
          const chatWithMessages = await Chat.findById(chatId).populate('messages');
-         res.status(200).send(chatWithMessages);
+         res.status(200).send({data: chatWithMessages});
     } catch(error) {
         next(error)
     }

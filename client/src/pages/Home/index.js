@@ -9,12 +9,8 @@ const Home = (props) => {
     const navigate = useNavigate();
 
     const sendApiRequest = (responce) => {
-        responce.then(({data}) => {
-            console.log(data);
-            props.sendData(data);
-            navigate('/messenger');
-        });
-    }
+        };
+    
 
     const buttonText = view ? "SignUp" : "SignIn";
 

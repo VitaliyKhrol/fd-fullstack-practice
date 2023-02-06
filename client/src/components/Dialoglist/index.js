@@ -1,32 +1,46 @@
-import React, {useEffect, useState} from 'react';
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from 'react';
 import styles from './DialogList.module.css';
-import {getUserChats} from '../../api/index';
+import { connect } from 'react-redux';
+import {getUserChatsAction, getChatWithMessagesAction} from '../../actions/actionCreators';
+import cx from 'classnames';
 
-const DialogList = () => {
-    const [list, setList] = useState(null);
-    const navigate = useNavigate();
+const DialogList = (props) => {
+    const {currentChat, chatList} = props;
 
-    // useEffect(() => {
-    //     getUserChats()
-    //     .then(({data: {data}}) => {
-    //         setList(data);
-    //     })
-    //     .catch((err) => {
-    //         console.log(err);
-    //         navigate('/');
-    //     });
-    // }, []);
+    useEffect(() => {
+        props.getUserChats();
+    }, []);
 
-    const mapList = (chat) => <li key={chat._id}>{chat.name}</li>
+   const changeCurrentChat = (userChoice) => {
+        if (userChoice !== currentChat?._id) {
+            console.log('user change chat');
+            props.getCurrentChat(userChoice);
+        }
+    }
+
+
+    const mapList = (chat) => {
+    const cn = cx(styles.dialog, {
+        [styles.active]: chat._id === currentChat?._id
+    })
+    return <li key={chat._id} 
+            className={cn}
+            onClick={() => {changeCurrentChat(chat._id)}}>{chat.name}</li>
+    }
 
     return (
-        <div className={styles.dialog}>
+        <div className={styles['dialog-list']}>
             <ul>
-            {list && list.map(mapList)}
+            {chatList && chatList.map(mapList)}
             </ul>
         </div>
     );
 }
+const mapStateToProps = ({chatList, currentChat}) => ({chatList, currentChat})
 
-export default DialogList;
+const mapDispatchToProps = {
+   getUserChats: getUserChatsAction,
+   getCurrentChat: getChatWithMessagesAction
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(DialogList);
