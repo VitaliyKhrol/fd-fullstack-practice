@@ -13,10 +13,10 @@ const server = http.createServer(app);
 const io = new Server (server, {cors});
 
 io.on('connect',(socket)=>{
-    console.log('CONNECTION ia IO ONN');
+    console.log('CONNECTION IS HERE IO');
     setTimeout(()=>{
     io.emit('NEW_NOTIFICATION', "Hello world");
-     },1000 );
+     },10000);
    
 
 })

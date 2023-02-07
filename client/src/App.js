@@ -1,24 +1,45 @@
-import React,{useState} from 'react';
+import React, {useEffect } from 'react';
 import Home from './pages/Home'
-import {unstable_HistoryRouter as HistoryRouter, Routes, Route} from 'react-router-dom';
+import { unstable_HistoryRouter as HistoryRouter, Routes, Route } from 'react-router-dom';
 import history from './browserHistory';
 import Dashboard from './pages/Dashboard';
+import { ToastContainer, toast } from 'react-toastify';
+import { connect } from 'react-redux';
 
-function App() {
-  const [user, setUser] = useState(null);
+
+function App(props) {
+
+  useEffect(() => {
+    toast (props.notification)
+  }, [props.notification]);
 
   return (
     <HistoryRouter history={history}>
-        <Routes>
-          <Route path='/' element = {<Home sendData={setUser} />} />
-          <Route path='/messenger' element = {<Dashboard user={user}/>} />
-        </Routes>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+      <Routes>
+        <Route path='/' element={<Home />} />
+        <Route path='/messenger' element={<Dashboard />} />
+      </Routes>
     </HistoryRouter>
-  
+
   );
 }
 
-export default App;
+const mapStateToProps = ({notification}) => ({notification})
+
+
+export default connect (mapStateToProps)(App);
 
 
 

@@ -2,6 +2,8 @@ import React from 'react';
 import styles from './Chat.module.css';
 import { connect } from 'react-redux';
 import cx from 'classnames';
+
+
 const Chat = (props) => {
    const {currentChat, user} = props;
    const messageMap = msg => {
