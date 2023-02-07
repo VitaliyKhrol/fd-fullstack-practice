@@ -19,3 +19,10 @@ function App() {
 }
 
 export default App;
+
+
+
+// TODO:
+// 1. LogOut button (кнопка розлогіну): почистити store (initialState) + очистка localStorage
+// 2. Додати до чату нового мембера
+// 3. Зробити в компоненті Чат шапку з назвою чату і кількістю мемберів 
